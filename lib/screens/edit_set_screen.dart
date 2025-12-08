@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/flashcard_set.dart';
 import '../models/flashcard.dart';
 import '../models/category.dart';
-import '../data/mock_data.dart'; // Upewnij się, że ścieżka do mock_data jest poprawna
+import '../data/mock_data.dart';
 
 class EditSetScreen extends StatefulWidget {
   final FlashcardSet set;
@@ -18,7 +18,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
   late TextEditingController _descController;
   String? _selectedCategoryId;
   
-  // Lokalna lista fiszek do edycji (zmiany tutaj nie wpływają na główną listę dopóki nie zapiszemy)
+
   late List<Flashcard> _flashcards;
 
   @override
@@ -27,7 +27,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
     _titleController = TextEditingController(text: widget.set.title);
     _descController = TextEditingController(text: widget.set.description);
     _selectedCategoryId = widget.set.categoryId;
-    // Tworzymy kopię listy fiszek
+ 
     _flashcards = List.from(widget.set.flashcards);
   }
 
@@ -47,10 +47,11 @@ class _EditSetScreenState extends State<EditSetScreen> {
     }
 
     setState(() {
-      // Szukamy oryginalnego zestawu w mockSets i go podmieniamy
+     
       int index = mockSets.indexWhere((s) => s.id == widget.set.id);
 
       if (index != -1) {
+        
         mockSets[index] = FlashcardSet(
           id: widget.set.id,
           title: _titleController.text,
@@ -62,11 +63,11 @@ class _EditSetScreenState extends State<EditSetScreen> {
       }
     });
 
-    // Wracamy do poprzedniego ekranu z informacją o sukcesie (true)
+   
     Navigator.pop(context, true);
   }
 
-  // Dialog dodawania/edycji pojedynczej fiszki
+  
   void _showFlashcardDialog({Flashcard? existingFlashcard, int? index}) {
     final questionController = TextEditingController(text: existingFlashcard?.question ?? '');
     final answerController = TextEditingController(text: existingFlashcard?.answer ?? '');
@@ -101,14 +102,14 @@ class _EditSetScreenState extends State<EditSetScreen> {
               if (questionController.text.isNotEmpty && answerController.text.isNotEmpty) {
                 setState(() {
                   if (existingFlashcard == null) {
-                    // Dodanie nowej
+                    
                     _flashcards.add(Flashcard(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generowanie ID
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
                       question: questionController.text,
                       answer: answerController.text,
                     ));
                   } else if (index != null) {
-                    // Aktualizacja istniejącej
+                    
                     _flashcards[index] = Flashcard(
                       id: existingFlashcard.id,
                       question: questionController.text,
@@ -146,7 +147,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
       ),
       body: Column(
         children: [
-          // Formularz edycji danych zestawu
+          
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.blue[50],
@@ -219,7 +220,9 @@ class _EditSetScreenState extends State<EditSetScreen> {
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _deleteFlashcard(index),
                           ),
+                          
                           onTap: () => _showFlashcardDialog(existingFlashcard: card, index: index),
+                          
                         ),
                       );
                     },
