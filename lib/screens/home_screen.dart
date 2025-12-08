@@ -41,6 +41,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // NOWA FUNKCJA: Potwierdzenie usunięcia zestawu
+  void _confirmDeleteSet(BuildContext context, String setId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Potwierdzenie usunięcia'),
+        content: const Text(
+            'Czy na pewno chcesz usunąć ten zestaw? Tej akcji nie można cofnąć.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              Navigator.pop(context); 
+              _deleteSet(setId);
+            },
+            child: const Text('Usuń', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _addCategory(String name) {
     setState(() {
       mockCategories.add(Category(id: 'c${mockCategories.length + 1}', name: name));
@@ -280,13 +308,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                             trailing: PopupMenuButton(
                               itemBuilder: (context) => [
-                           
+                            
                                 const PopupMenuItem(value: 'edit', child: Text('Edytuj')),
                                 const PopupMenuItem(value: 'delete', child: Text('Usuń')),
                               ],
                               onSelected: (value) async {
                                 if (value == 'delete') {
-                                  _deleteSet(set.id);
+                                  // ZMIANA: Wywołanie funkcji z potwierdzeniem
+                                  _confirmDeleteSet(context, set.id);
                                 } else if (value == 'edit') {
                               
                                   final result = await Navigator.push(
