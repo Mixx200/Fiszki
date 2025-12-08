@@ -1,7 +1,72 @@
 import '../models/category.dart';
 import '../models/flashcard.dart';
 import '../models/flashcard_set.dart';
-//zapisane fiszki:
+
+// Zmodyfikowane struktury danych do śledzenia statystyk
+// --------------------------------------------------------------------------
+
+// 1. Statystyki dzienne (Liczba przerobionych fiszek)
+// Początkowo pusta, statystyki resetują się.
+// Format: {'YYYY-MM-DD': Liczba_fiszki}
+Map<String, int> dailyStats = {};
+
+// 2. Statystyki zestawów
+// Klucz: ID zestawu (String)
+// Wartość: Mapa statystyk {'totalAnswered': int, 'totalCorrect': int}
+Map<String, Map<String, int>> setProgressStats = {};
+
+// Funkcja pomocnicza do formatowania daty na klucz (np. "2023-11-24")
+String _getDateKey(DateTime date) {
+  return date.toIso8601String().split('T')[0];
+}
+
+// Funkcja wywoływana, gdy użytkownik przerobi fiszkę (przykładowa, aktualizuje tylko statystyki dzienne)
+void recordFlashcardStudy() {
+  final todayKey = _getDateKey(DateTime.now());
+  if (dailyStats.containsKey(todayKey)) {
+    dailyStats[todayKey] = dailyStats[todayKey]! + 1;
+  } else {
+    dailyStats[todayKey] = 1;
+  }
+}
+
+// Dodaj tę funkcję do mock_data.dart:
+
+void updateSetProgress(String setId, int totalKnown, int totalUnknown) {
+  final totalAnsweredInSession = totalKnown + totalUnknown;
+  final totalCorrectInSession = totalKnown;
+  final todayKey = _getDateKey(DateTime.now());
+  
+  if (totalAnsweredInSession == 0) return; // Nic do zapisania
+  
+  // 1. Aktualizacja statystyk dziennych (dailyStats)
+  dailyStats.update(
+    todayKey, 
+    (currentCount) => currentCount + totalAnsweredInSession, 
+    ifAbsent: () => totalAnsweredInSession
+  );
+
+  // 2. Aktualizacja statystyk zestawu (setProgressStats)
+  
+  // Zapewnienie, że klucz istnieje
+  setProgressStats.putIfAbsent(setId, () => {'totalAnswered': 0, 'totalCorrect': 0});
+  
+  // Aktualizacja wartości
+  setProgressStats[setId]!['totalAnswered'] = 
+      setProgressStats[setId]!['totalAnswered']! + totalAnsweredInSession;
+  
+  setProgressStats[setId]!['totalCorrect'] = 
+      setProgressStats[setId]!['totalCorrect']! + totalCorrectInSession;
+  
+  // Opcjonalnie: Jeśli używasz Hive lub innego mechanizmu trwałości, 
+  // w tym miejscu powinien nastąpić zapis (np. Box.put(key, map)).
+}
+
+// --------------------------------------------------------------------------
+// ISTNIEJĄCE DANE MOCK
+// --------------------------------------------------------------------------
+
+// zapisane fiszki:
 List<Flashcard> savedFlashcards = [];
 
 // ID bieżącego użytkownika 
@@ -704,27 +769,3 @@ List<FlashcardSet> mockSets = [
 
   
 ];
-
-Map<String, int> dailyStats = {
-  // Przykładowe dane historyczne (żeby wykres ładnie wyglądał na start)
-  _getDateKey(DateTime.now().subtract(const Duration(days: 4))): 5,
-  _getDateKey(DateTime.now().subtract(const Duration(days: 3))): 12,
-  _getDateKey(DateTime.now().subtract(const Duration(days: 2))): 8,
-  _getDateKey(DateTime.now().subtract(const Duration(days: 1))): 20,
-  _getDateKey(DateTime.now()): 3, // Dzisiejszy startowy wynik
-};
-
-// Funkcja pomocnicza do formatowania daty na klucz (np. "2023-11-24")
-String _getDateKey(DateTime date) {
-  return date.toIso8601String().split('T')[0];
-}
-
-// Funkcja wywoływana, gdy użytkownik przerobi fiszkę
-void recordFlashcardStudy() {
-  final todayKey = _getDateKey(DateTime.now());
-  if (dailyStats.containsKey(todayKey)) {
-    dailyStats[todayKey] = dailyStats[todayKey]! + 1;
-  } else {
-    dailyStats[todayKey] = 1;
-  }
-}
