@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/flashcard_set.dart';
 import '../widgets/flashcard_view.dart';
 import 'results_screen.dart';
-import '../data/mock_data.dart'; // Upewnij się, że ten import tu jest
+import '../data/mock_data.dart'; // Upewnij się, że ten import tu jest i zawiera updateSetProgress
 
 class LearnScreen extends StatefulWidget {
   final FlashcardSet flashcardSet;
@@ -30,10 +30,9 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   void _onAnswered(String flashcardId, bool isKnown) {
-    // --- NOWA LINIA ---
-    recordFlashcardStudy(); // Zapisuje +1 do statystyk dnia
-    // ------------------
-
+    // USUŃ TUTAJ POJEDYNCZE ZAPISYWANIE! 
+    // recordFlashcardStudy(); // Ta linia została usunięta, aby zapobiec podwójnemu liczeniu
+    
     // Zapisz postęp
     setState(() {
       _progress[flashcardId] = isKnown;
@@ -55,6 +54,11 @@ class _LearnScreenState extends State<LearnScreen> {
     // Oblicz wyniki
     int knownCount = _progress.values.where((known) => known == true).length;
     int unknownCount = _progress.values.length - knownCount;
+    
+    // === KLUCZOWA ZMIANA: JEDNOKROTNY ZAPIS STATYSTYK SESJI ===
+    // Zapisz wyniki całej sesji raz, zanim nastąpi nawigacja
+    updateSetProgress(widget.flashcardSet.id, knownCount, unknownCount);
+    // ========================================================
 
     // Przejdź do ekranu wyników
     Navigator.pushReplacement(

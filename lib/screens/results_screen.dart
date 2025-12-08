@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
 import '../models/flashcard_set.dart';
 import 'learn_screen.dart';
+import '../data/mock_data.dart'; // Import mock_data jest potrzebny, ale update nie jest wywoływany w build
 
 class ResultsScreen extends StatelessWidget {
   final int known;
@@ -17,6 +18,10 @@ class ResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // UWAGA: Logika zapisu statystyk została CELOWO USUNIĘTA Z TEGO MIEJSCA,
+    // aby zapobiec podwójnemu liczeniu, ponieważ build() może być wywołany
+    // więcej niż raz. Zapis musi nastąpić JEDEN RAZ w LearnScreen.dart.
+    
     final int total = known + unknown;
     final double knownPercent = (total == 0) ? 0 : (known / total) * 100;
     final double unknownPercent = (total == 0) ? 0 : (unknown / total) * 100;
@@ -37,7 +42,7 @@ class ResultsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Gratulacje!',
+                'Gratulacje! 🎉',
                 style: Theme.of(context).textTheme.displaySmall,
                 textAlign: TextAlign.center,
               ),
