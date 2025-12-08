@@ -18,7 +18,6 @@ class _EditSetScreenState extends State<EditSetScreen> {
   late TextEditingController _descController;
   String? _selectedCategoryId;
   
-
   late List<Flashcard> _flashcards;
 
   @override
@@ -27,7 +26,6 @@ class _EditSetScreenState extends State<EditSetScreen> {
     _titleController = TextEditingController(text: widget.set.title);
     _descController = TextEditingController(text: widget.set.description);
     _selectedCategoryId = widget.set.categoryId;
- 
     _flashcards = List.from(widget.set.flashcards);
   }
 
@@ -47,11 +45,9 @@ class _EditSetScreenState extends State<EditSetScreen> {
     }
 
     setState(() {
-     
       int index = mockSets.indexWhere((s) => s.id == widget.set.id);
 
       if (index != -1) {
-        
         mockSets[index] = FlashcardSet(
           id: widget.set.id,
           title: _titleController.text,
@@ -63,11 +59,9 @@ class _EditSetScreenState extends State<EditSetScreen> {
       }
     });
 
-   
     Navigator.pop(context, true);
   }
 
-  
   void _showFlashcardDialog({Flashcard? existingFlashcard, int? index}) {
     final questionController = TextEditingController(text: existingFlashcard?.question ?? '');
     final answerController = TextEditingController(text: existingFlashcard?.answer ?? '');
@@ -102,14 +96,12 @@ class _EditSetScreenState extends State<EditSetScreen> {
               if (questionController.text.isNotEmpty && answerController.text.isNotEmpty) {
                 setState(() {
                   if (existingFlashcard == null) {
-                    
                     _flashcards.add(Flashcard(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       question: questionController.text,
                       answer: answerController.text,
                     ));
                   } else if (index != null) {
-                    
                     _flashcards[index] = Flashcard(
                       id: existingFlashcard.id,
                       question: questionController.text,
@@ -133,6 +125,33 @@ class _EditSetScreenState extends State<EditSetScreen> {
     });
   }
 
+  void _confirmDeleteFlashcard(int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Potwierdzenie usunięcia'),
+        content: const Text(
+            'Czy chcesz usunąć tę fiszkę? Te zmiany nie mogą zostać cofnięte.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              _deleteFlashcard(index);
+              Navigator.pop(context);
+            },
+            child: const Text('Usuń', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,7 +166,6 @@ class _EditSetScreenState extends State<EditSetScreen> {
       ),
       body: Column(
         children: [
-          
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.blue[50],
@@ -203,7 +221,6 @@ class _EditSetScreenState extends State<EditSetScreen> {
               ],
             ),
           ),
-          // Lista fiszek
           Expanded(
             child: _flashcards.isEmpty
                 ? const Center(child: Text('Brak fiszek w tym zestawie'))
@@ -218,11 +235,9 @@ class _EditSetScreenState extends State<EditSetScreen> {
                           subtitle: Text(card.answer, maxLines: 1, overflow: TextOverflow.ellipsis),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteFlashcard(index),
+                            onPressed: () => _confirmDeleteFlashcard(index),
                           ),
-                          
                           onTap: () => _showFlashcardDialog(existingFlashcard: card, index: index),
-                          
                         ),
                       );
                     },
