@@ -221,34 +221,47 @@ class _EditSetScreenState extends State<EditSetScreen> {
               ],
             ),
           ),
+          // Zmieniony widżet listy
           Expanded(
-            child: _flashcards.isEmpty
-                ? const Center(child: Text('Brak fiszek w tym zestawie'))
-                : ListView.builder(
-                    itemCount: _flashcards.length,
-                    itemBuilder: (context, index) {
-                      final card = _flashcards[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        child: ListTile(
-                          title: Text(card.question, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(card.answer, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _confirmDeleteFlashcard(index),
-                          ),
-                          onTap: () => _showFlashcardDialog(existingFlashcard: card, index: index),
-                        ),
-                      );
-                    },
+            child: ListView.builder(
+              // Długość listy powiększona o 1 (dla przycisku dodawania)
+              itemCount: _flashcards.length + 1,
+              itemBuilder: (context, index) {
+                // Jeśli jest to ostatni element (index == _flashcards.length)
+                if (index == _flashcards.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 20.0, left: 10.0, right: 10.0),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.add),
+                      label: const Text('Dodaj nową fiszkę'),
+                      onPressed: () => _showFlashcardDialog(),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                    ),
+                  );
+                }
+
+                // W przeciwnym razie wyświetl normalną fiszkę
+                final card = _flashcards[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  child: ListTile(
+                    title: Text(card.question, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(card.answer, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _confirmDeleteFlashcard(index),
+                    ),
+                    onTap: () => _showFlashcardDialog(existingFlashcard: card, index: index),
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFlashcardDialog(),
-        child: const Icon(Icons.add),
-      ),
+      // USUNIĘTO: floatingActionButton, który wcześniej blokował widok.
     );
   }
 }
