@@ -153,20 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Cognito'),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _navigateToSearch,
-          ),
-          IconButton(
-            icon: const Icon(Icons.bookmark),
-            onPressed: _navigateToSavedFlashcards,
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: _navigateToMySets,
-          ),
-        ],
+        
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
