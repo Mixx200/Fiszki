@@ -20,7 +20,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
   
   late List<Flashcard> _flashcards;
   
-  // ZMIANA 1: Nowa zmienna stanu do śledzenia zmian
+  
   bool _changesMade = false;
 
   @override
@@ -31,16 +31,14 @@ class _EditSetScreenState extends State<EditSetScreen> {
     _selectedCategoryId = widget.set.categoryId;
     _flashcards = List.from(widget.set.flashcards);
     
-    // ZMIANA 2: Dodajemy listener, aby oznaczyć zmiany w polach tekstowych
+    
     _titleController.addListener(_markChangesMade);
     _descController.addListener(_markChangesMade);
   }
 
-  // Funkcja pomocnicza do oznaczania zmian
+  
   void _markChangesMade() {
-    // Sprawdzamy, czy aktualne wartości różnią się od początkowych (tylko w momencie inicjalizacji)
-    // Zmienna _changesMade jest wystarczająca, aby śledzić, czy po wejściu na ekran nastąpiła JAKAKOLWIEK zmiana.
-    // Aby uprościć, po prostu ustawiamy ją na true.
+    
     if (!_changesMade) {
       setState(() {
         _changesMade = true;
@@ -50,7 +48,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
 
   @override
   void dispose() {
-    // Pamiętaj o usunięciu listenerów
+    
     _titleController.removeListener(_markChangesMade);
     _descController.removeListener(_markChangesMade);
     _titleController.dispose();
@@ -58,10 +56,10 @@ class _EditSetScreenState extends State<EditSetScreen> {
     super.dispose();
   }
 
-  // ZMIANA 3: Funkcja do wyświetlania popupu potwierdzającego odrzucenie zmian
+  
   Future<bool> _showDiscardChangesDialog() async {
     if (!_changesMade) {
-      return true; // Pozwól na wyjście, jeśli nie ma zmian
+      return true; 
     }
 
     return await showDialog<bool>(
@@ -69,11 +67,11 @@ class _EditSetScreenState extends State<EditSetScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Potwierdzenie'),
-          content: const Text('Czy na pewno chcesz odrzucić zmiany?'), // Tekst z Twojej prośby
+          content: const Text('Czy na pewno chcesz odrzucić zmiany?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Anuluj'),
-              // Zwrócenie 'false' zapobiega wyjściu
+              
               onPressed: () => Navigator.of(context).pop(false), 
             ),
             ElevatedButton(
@@ -81,13 +79,13 @@ class _EditSetScreenState extends State<EditSetScreen> {
                 backgroundColor: Colors.red,
               ),
               child: const Text('Odrzuć', style: TextStyle(color: Colors.white)),
-              // Zwrócenie 'true' pozwala na wyjście
+              
               onPressed: () => Navigator.of(context).pop(true), 
             ),
           ],
         );
       },
-    ) ?? false; // Domyślnie blokuj wyjście
+    ) ?? false; 
   }
 
 
@@ -112,7 +110,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
           ownerId: widget.set.ownerId,
         );
       }
-      // ZMIANA 4: Po zapisaniu, oznaczamy, że nie ma już niezapisanych zmian
+      
       _changesMade = false;
     });
 
@@ -165,7 +163,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
                       answer: answerController.text,
                     );
                   }
-                  // ZMIANA 5: Po dodaniu/edycji fiszki, oznaczamy, że zmiany zostały wprowadzone
+                  
                   _changesMade = true;
                 });
                 Navigator.pop(context);
@@ -181,9 +179,16 @@ class _EditSetScreenState extends State<EditSetScreen> {
   void _deleteFlashcard(int index) {
     setState(() {
       _flashcards.removeAt(index);
-      // ZMIANA 6: Po usunięciu fiszki, oznaczamy, że zmiany zostały wprowadzone
+      
       _changesMade = true;
     });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Fiszka usunięta'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _confirmDeleteFlashcard(int index) {
@@ -203,8 +208,8 @@ class _EditSetScreenState extends State<EditSetScreen> {
               backgroundColor: Colors.red,
             ),
             onPressed: () {
-              _deleteFlashcard(index);
               Navigator.pop(context);
+              _deleteFlashcard(index);
             },
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
           ),
@@ -215,9 +220,9 @@ class _EditSetScreenState extends State<EditSetScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ZMIANA 7: Zawiń główny widżet w WillPopScope
+    
     return WillPopScope(
-      onWillPop: _showDiscardChangesDialog, // Wywołaj funkcję sprawdzającą zmiany
+      onWillPop: _showDiscardChangesDialog, 
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Edycja zestawu'),
@@ -237,7 +242,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
                 children: [
                   TextField(
                     controller: _titleController,
-                    // Listener został dodany w initState, więc nie potrzebujemy tu onChanged
+                    
                     decoration: const InputDecoration(
                       labelText: 'Tytuł zestawu',
                       border: OutlineInputBorder(),
@@ -246,7 +251,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
                   const SizedBox(height: 10),
                   TextField(
                     controller: _descController,
-                    // Listener został dodany w initState, więc nie potrzebujemy tu onChanged
+                    
                     decoration: const InputDecoration(
                       labelText: 'Opis',
                       border: OutlineInputBorder(),
@@ -268,7 +273,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
                     onChanged: (val) {
                       setState(() {
                         _selectedCategoryId = val;
-                        // ZMIANA 8: Oznaczamy, że zmiany zostały wprowadzone
+                        
                         _changesMade = true;
                       });
                     },
@@ -277,8 +282,22 @@ class _EditSetScreenState extends State<EditSetScreen> {
               ),
             ),
             const Divider(height: 1),
+            
+            // NOWY PRZYCISK DODAJĄCY FISZKĘ - ZMIENIONA LOKALIZACJA
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(top: 10.0, bottom: 0.0, left: 16.0, right: 16.0),
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text('Dodaj nową fiszkę'),
+                onPressed: () => _showFlashcardDialog(),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -289,28 +308,17 @@ class _EditSetScreenState extends State<EditSetScreen> {
                 ],
               ),
             ),
-            // Zmieniony widżet listy
+            
             Expanded(
               child: ListView.builder(
-                // Długość listy powiększona o 1 (dla przycisku dodawania)
-                itemCount: _flashcards.length + 1,
+                
+                itemCount: _flashcards.length, // Zmieniono z _flashcards.length + 1
                 itemBuilder: (context, index) {
-                  // Jeśli jest to ostatni element (index == _flashcards.length)
-                  if (index == _flashcards.length) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0, bottom: 20.0, left: 10.0, right: 10.0),
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('Dodaj nową fiszkę'),
-                        onPressed: () => _showFlashcardDialog(),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                        ),
-                      ),
-                    );
-                  }
+                  
+                  // Usunięto warunek if (index == _flashcards.length) 
+                  // ponieważ przycisk został przeniesiony
 
-                  // W przeciwnym razie wyświetl normalną fiszkę
+                  
                   final card = _flashcards[index];
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
