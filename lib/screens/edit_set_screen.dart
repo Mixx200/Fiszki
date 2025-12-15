@@ -42,7 +42,8 @@ class _EditSetScreenState extends State<EditSetScreen> {
     if (!_changesMade) {
       setState(() {
         _changesMade = true;
-      });
+      }
+      );
     }
   }
 
@@ -123,7 +124,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext dialogContext) => AlertDialog(
         title: Text(existingFlashcard == null ? 'Dodaj fiszkę' : 'Edytuj fiszkę'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -143,12 +144,15 @@ class _EditSetScreenState extends State<EditSetScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Anuluj'),
           ),
           ElevatedButton(
             onPressed: () {
               if (questionController.text.isNotEmpty && answerController.text.isNotEmpty) {
+                
+                String? message;
+
                 setState(() {
                   if (existingFlashcard == null) {
                     _flashcards.add(Flashcard(
@@ -156,17 +160,29 @@ class _EditSetScreenState extends State<EditSetScreen> {
                       question: questionController.text,
                       answer: answerController.text,
                     ));
+                    message = 'Fiszka dodana pomyślnie';
                   } else if (index != null) {
                     _flashcards[index] = Flashcard(
                       id: existingFlashcard.id,
                       question: questionController.text,
                       answer: answerController.text,
                     );
+                    message = 'Fiszka zaktualizowana pomyślnie';
                   }
                   
                   _changesMade = true;
                 });
-                Navigator.pop(context);
+
+                Navigator.pop(dialogContext); 
+                
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message!),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Zapisz'),
@@ -194,13 +210,13 @@ class _EditSetScreenState extends State<EditSetScreen> {
   void _confirmDeleteFlashcard(int index) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext dialogContext) => AlertDialog(
         title: const Text('Potwierdzenie usunięcia'),
         content: const Text(
             'Czy chcesz usunąć tę fiszkę? Te zmiany nie mogą zostać cofnięte.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Anuluj'),
           ),
           ElevatedButton(
@@ -208,7 +224,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
               backgroundColor: Colors.red,
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               _deleteFlashcard(index);
             },
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
@@ -283,7 +299,6 @@ class _EditSetScreenState extends State<EditSetScreen> {
             ),
             const Divider(height: 1),
             
-            // NOWY PRZYCISK DODAJĄCY FISZKĘ - ZMIENIONA LOKALIZACJA
             Padding(
               padding: const EdgeInsets.only(top: 10.0, bottom: 0.0, left: 16.0, right: 16.0),
               child: OutlinedButton.icon(
@@ -312,12 +327,9 @@ class _EditSetScreenState extends State<EditSetScreen> {
             Expanded(
               child: ListView.builder(
                 
-                itemCount: _flashcards.length, // Zmieniono z _flashcards.length + 1
+                itemCount: _flashcards.length,
                 itemBuilder: (context, index) {
                   
-                  // Usunięto warunek if (index == _flashcards.length) 
-                  // ponieważ przycisk został przeniesiony
-
                   
                   final card = _flashcards[index];
                   return Card(
