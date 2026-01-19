@@ -18,7 +18,6 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
   final _descriptionController = TextEditingController();
   String? _selectedCategoryId;
 
-  // Funkcja do pokazywania okna dialogowego dodawania kategorii
   void _showAddCategoryDialog() {
     final _categoryNameController = TextEditingController();
     showDialog(
@@ -42,7 +41,6 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
                 if (_categoryNameController.text.isNotEmpty) {
                   widget.onCategoryAdded(_categoryNameController.text);
                   Navigator.pop(context);
-                  // Odśwież listę kategorii w dropdown
                   setState(() {});
                 }
               },
@@ -55,21 +53,23 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
 
   void _goToNextStep() {
     if (_formKey.currentState!.validate()) {
-      // Stwórz tymczasowy zestaw (jeszcze bez fiszek)
       final tempSet = FlashcardSet(
-        id: 'temp_id', // Tymczasowe ID
+        id: 'temp_id',
         title: _titleController.text,
         description: _descriptionController.text,
         categoryId: _selectedCategoryId!,
-        flashcards: [], // Pusta lista fiszek
+        flashcards: [],
       );
 
-      // Przejdź do kroku 2
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => CreateSetScreen2(draftSet: tempSet),
         ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wypełnij wymagane pola (Tytuł i Kategoria)')),
       );
     }
   }
@@ -77,7 +77,7 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nowy zestaw')),
+      appBar: AppBar(title: const Text('Nowy zestaw')), 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -87,15 +87,22 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Tytuł'),
-                validator: (value) => value == null || value.isEmpty ? 'Tytuł jest wymagany' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Tytuł *',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null || value.trim().isEmpty ? 'Tytuł jest wymagany' : null,
               ),
               const SizedBox(height: 16),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Kategoria'),
+                      decoration: const InputDecoration(
+                        labelText: 'Kategoria *',
+                        border: OutlineInputBorder(),
+                      ),
                       value: _selectedCategoryId,
                       items: mockCategories.map((category) {
                         return DropdownMenuItem(
@@ -111,8 +118,9 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
                       validator: (value) => value == null ? 'Wybierz kategorię' : null,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.add, size: 30),
+                    icon: const Icon(Icons.add_box, size: 40, color: Colors.blue),
                     onPressed: _showAddCategoryDialog,
                   ),
                 ],
@@ -120,13 +128,18 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Opis'),
+                decoration: const InputDecoration(
+                  labelText: 'Opis (opcjonalnie)',
+                  border: OutlineInputBorder(),
+                ),
                 maxLines: 3,
+                
               ),
               const SizedBox(height: 32),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
                 onPressed: _goToNextStep,
-                child: const Text('Dalej'),
+                child: const Text('Dalej', style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
