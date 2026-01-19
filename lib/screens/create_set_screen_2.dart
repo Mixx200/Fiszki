@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/mock_data.dart'; // Importujemy currentUserId
+import '../data/mock_data.dart';
 import '../models/flashcard.dart';
 import '../models/flashcard_set.dart';
 import 'create_set_success_screen.dart';
@@ -24,6 +24,7 @@ class CreateSetScreen2 extends StatefulWidget {
 }
 
 class _CreateSetScreen2State extends State<CreateSetScreen2> {
+  final _formKey = GlobalKey<FormState>(); 
   List<FlashcardControllers> _flashcardControllers = [];
 
   @override
@@ -62,27 +63,35 @@ class _CreateSetScreen2State extends State<CreateSetScreen2> {
   }
 
   void _finishCreatingSet() {
+    // 1. Sprawdź walidację formularza (pola puste)
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Uzupełnij wszystkie dodane fiszki')),
+      );
+      return;
+    }
+
+    // 2. Zbierz dane
     List<Flashcard> newFlashcards = [];
     for (int i = 0; i < _flashcardControllers.length; i++) {
       final q = _flashcardControllers[i].questionController.text;
       final a = _flashcardControllers[i].answerController.text;
 
-      if (q.isNotEmpty && a.isNotEmpty) {
-        newFlashcards.add(
-          Flashcard(
-            id: widget.isEditing && i < widget.draftSet.flashcards.length 
-                ? widget.draftSet.flashcards[i].id 
-                : 'f${DateTime.now().millisecondsSinceEpoch}-$i',
-            question: q,
-            answer: a,
-          ),
-        );
-      }
+      newFlashcards.add(
+        Flashcard(
+          id: widget.isEditing && i < widget.draftSet.flashcards.length 
+              ? widget.draftSet.flashcards[i].id 
+              : 'f${DateTime.now().millisecondsSinceEpoch}-$i',
+          question: q,
+          answer: a,
+        ),
+      );
     }
 
+    // 3. Sprawdź czy lista nie jest pusta
     if (newFlashcards.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dodaj przynajmniej jedną fiszkę')),
+        const SnackBar(content: Text('Zestaw musi zawierać przynajmniej jedną fiszkę')),
       );
       return;
     }
@@ -93,7 +102,7 @@ class _CreateSetScreen2State extends State<CreateSetScreen2> {
       description: widget.draftSet.description,
       categoryId: widget.draftSet.categoryId,
       flashcards: newFlashcards,
-      ownerId: currentUserId, // DODAJEMY ownerId dla nowych zestawów
+      ownerId: currentUserId,
     );
 
     if (widget.isEditing) {
@@ -118,74 +127,84 @@ class _CreateSetScreen2State extends State<CreateSetScreen2> {
       appBar: AppBar(
         title: Text(widget.draftSet.title),
         actions: [
-          if (widget.isEditing)
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _finishCreatingSet,
-            ),
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: _finishCreatingSet,
+          ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _flashcardControllers.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Fiszka ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            if (_flashcardControllers.length > 1)
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _removeFlashcardFields(index),
-                              ),
-                          ],
-                        ),
-                        TextFormField(
-                          controller: _flashcardControllers[index].questionController,
-                          decoration: const InputDecoration(labelText: 'Pytanie'),
-                          maxLines: 2,
-                        ),
-                        TextFormField(
-                          controller: _flashcardControllers[index].answerController,
-                          decoration: const InputDecoration(labelText: 'Odpowiedź'),
-                          maxLines: 3,
-                        ),
-                      ],
+      body: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: _flashcardControllers.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    elevation: 3,
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Fiszka ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                              if (_flashcardControllers.length > 1)
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                  onPressed: () => _removeFlashcardFields(index),
+                                ),
+                            ],
+                          ),
+                          TextFormField(
+                            controller: _flashcardControllers[index].questionController,
+                            decoration: const InputDecoration(labelText: 'Pytanie *'),
+                            maxLines: 2,
+                            validator: (value) => value == null || value.trim().isEmpty ? 'Wpisz pytanie' : null,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _flashcardControllers[index].answerController,
+                            decoration: const InputDecoration(labelText: 'Odpowiedź *'),
+                            maxLines: 2,
+                            validator: (value) => value == null || value.trim().isEmpty ? 'Wpisz odpowiedź' : null,
+                          ),
+                        ],
+                      ),
                     ),
+                  );
+                },
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.add),
+                    label: const Text('Dodaj kolejną fiszkę'),
+                    onPressed: _addFlashcardFields,
                   ),
-                );
-              },
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: _finishCreatingSet,
+                    child: Text(widget.isEditing ? 'Zapisz zmiany' : 'Zakończ i utwórz zestaw'),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Dodaj kolejną fiszkę'),
-                  onPressed: _addFlashcardFields,
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _finishCreatingSet,
-                  child: Text(widget.isEditing ? 'Zapisz zmiany' : 'Zakończ'),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
