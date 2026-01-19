@@ -63,7 +63,7 @@ class _CreateSetScreen2State extends State<CreateSetScreen2> {
   }
 
   void _finishCreatingSet() {
-    // 1. Sprawdź walidację formularza (pola puste)
+    
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Uzupełnij wszystkie dodane fiszki')),
@@ -71,7 +71,7 @@ class _CreateSetScreen2State extends State<CreateSetScreen2> {
       return;
     }
 
-    // 2. Zbierz dane
+    
     List<Flashcard> newFlashcards = [];
     for (int i = 0; i < _flashcardControllers.length; i++) {
       final q = _flashcardControllers[i].questionController.text;
@@ -88,7 +88,7 @@ class _CreateSetScreen2State extends State<CreateSetScreen2> {
       );
     }
 
-    // 3. Sprawdź czy lista nie jest pusta
+    
     if (newFlashcards.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Zestaw musi zawierać przynajmniej jedną fiszkę')),
