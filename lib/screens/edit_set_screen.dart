@@ -14,7 +14,6 @@ class EditSetScreen extends StatefulWidget {
 }
 
 class _EditSetScreenState extends State<EditSetScreen> {
-  // Klucz do walidacji głównego formularza (Tytuł, Opis, Kategoria)
   final _formKey = GlobalKey<FormState>();
   
   late TextEditingController _titleController;
@@ -80,7 +79,6 @@ class _EditSetScreenState extends State<EditSetScreen> {
   }
 
   void _saveChanges() {
-    // Uruchomienie walidacji pól
     if (_formKey.currentState!.validate()) {
       setState(() {
         int index = mockSets.indexWhere((s) => s.id == widget.set.id);
@@ -100,9 +98,8 @@ class _EditSetScreenState extends State<EditSetScreen> {
 
       Navigator.pop(context, true);
     } else {
-      // Opcjonalny komunikat, gdy pola są puste
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Wypełnij wymagane pola')),
+        const SnackBar(content: Text('Wypełnij wymagane pola (Tytuł i Kategoria)')),
       );
     }
   }
@@ -123,16 +120,16 @@ class _EditSetScreenState extends State<EditSetScreen> {
             children: [
               TextFormField(
                 controller: questionController,
-                decoration: const InputDecoration(labelText: 'Pytanie'),
+                decoration: const InputDecoration(labelText: 'Pytanie *'),
                 maxLines: 2,
-                validator: (value) => value!.isEmpty ? 'Wpisz pytanie' : null,
+                validator: (value) => value == null || value.trim().isEmpty ? 'Wpisz pytanie' : null,
               ),
               const SizedBox(height: 10),
               TextFormField(
                 controller: answerController,
-                decoration: const InputDecoration(labelText: 'Odpowiedź'),
+                decoration: const InputDecoration(labelText: 'Odpowiedź *'),
                 maxLines: 3,
-                validator: (value) => value!.isEmpty ? 'Wpisz odpowiedź' : null,
+                validator: (value) => value == null || value.trim().isEmpty ? 'Wpisz odpowiedź' : null,
               ),
             ],
           ),
@@ -252,35 +249,25 @@ class _EditSetScreenState extends State<EditSetScreen> {
                     TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
-                        labelText: 'Tytuł zestawu',
+                        labelText: 'Tytuł zestawu *',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'To pole jest wymagane';
-                        }
-                        return null;
-                      },
+                      validator: (value) => value == null || value.trim().isEmpty ? 'To pole jest wymagane' : null,
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _descController,
                       decoration: const InputDecoration(
-                        labelText: 'Opis',
+                        labelText: 'Opis (opcjonalnie)',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'To pole jest wymagane';
-                        }
-                        return null;
-                      },
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       value: _selectedCategoryId,
                       decoration: const InputDecoration(
-                        labelText: 'Kategoria',
+                        labelText: 'Kategoria *',
                         border: OutlineInputBorder(),
                       ),
                       items: mockCategories.map((cat) {
