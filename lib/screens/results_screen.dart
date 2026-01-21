@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
 import '../models/flashcard_set.dart';
 import 'learn_screen.dart';
-import '../data/mock_data.dart'; // Import mock_data jest potrzebny, ale update nie jest wywoływany w build
+import '../data/mock_data.dart';
 
 class ResultsScreen extends StatelessWidget {
   final int known;
   final int unknown;
-  final FlashcardSet set; // Zestaw do powtórzenia
+  final FlashcardSet set;
 
   const ResultsScreen({
     Key? key,
@@ -18,15 +18,12 @@ class ResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // UWAGA: Logika zapisu statystyk została CELOWO USUNIĘTA Z TEGO MIEJSCA,
-    // aby zapobiec podwójnemu liczeniu, ponieważ build() może być wywołany
-    // więcej niż raz. Zapis musi nastąpić JEDEN RAZ w LearnScreen.dart.
     
     final int total = known + unknown;
     final double knownPercent = (total == 0) ? 0 : (known / total) * 100;
     final double unknownPercent = (total == 0) ? 0 : (unknown / total) * 100;
 
-    // Dane do wykresu
+    
     Map<String, double> dataMap = {
       "Umiesz": known.toDouble(),
       "Nie umiesz": unknown.toDouble(),
@@ -53,10 +50,10 @@ class ResultsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
               
-              // Wykres kołowy
+              
               PieChart(
                 dataMap: dataMap,
-                colorList: const [Colors.blue, Colors.red], // Umiem, Nie umiem
+                colorList: const [Colors.blue, Colors.red],
                 chartRadius: MediaQuery.of(context).size.width / 2.5,
                 legendOptions: const LegendOptions(showLegends: false),
                 chartValuesOptions: const ChartValuesOptions(
@@ -80,7 +77,7 @@ class ResultsScreen extends StatelessWidget {
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  // Zastąp ten ekran nową sesją nauki
+                  
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -93,7 +90,7 @@ class ResultsScreen extends StatelessWidget {
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () {
-                  // Wróć do ekranu głównego
+                  
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 child: const Text('Strona główna'),
