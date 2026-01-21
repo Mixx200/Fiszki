@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../data/mock_data.dart';
 import '../models/flashcard_set.dart';
-import '../models/category.dart'; 
+import '../models/category.dart';
 import 'learn_screen.dart';
 import 'create_set_screen_2.dart';
-import 'create_set_screen_1.dart'; 
+import 'create_set_screen_1.dart';
+import 'edit_set_screen.dart';
 
 class MySetsScreen extends StatefulWidget {
   const MySetsScreen({Key? key}) : super(key: key);
@@ -31,15 +32,17 @@ class _MySetsScreenState extends State<MySetsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateSetScreen2(draftSet: set, isEditing: true),
+        builder: (context) => EditSetScreen(set: set),
       ),
     ).then((_) {
-      setState(() {}); // Odśwież po powrocie z edycji
+      setState(() {});
     });
   }
 
-  // Funkcja do dodawania kategorii (potrzebna dla CreateSetScreen1)
   void _addCategory(String name) {
+    setState(() {
+      mockCategories.add(Category(id: 'c${mockCategories.length + 1}', name: name));
+    });
   }
 
   @override
@@ -78,7 +81,7 @@ class _MySetsScreenState extends State<MySetsScreen> {
                 final set = mySets[index];
                 final category = mockCategories.firstWhere(
                   (cat) => cat.id == set.categoryId,
-                  orElse: () => Category(id: '?', name: 'Brak kategorii'), // POPRAWIONE
+                  orElse: () => Category(id: '?', name: 'Brak kategorii'),
                 );
 
                 return Card(
@@ -87,15 +90,23 @@ class _MySetsScreenState extends State<MySetsScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.person, color: Colors.blue),
                     title: Text(set.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Kategoria: ${category.name}\n${set.flashcards.length} pytania'), // POPRAWIONE
+                    subtitle: Text('Kategoria: ${category.name}\n${set.flashcards.length} pytania'),
                     isThreeLine: true,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LearnScreen(flashcardSet: set),
-                        ),
-                      );
+                      // ZMIANA: Obsługa pustego zestawu
+                      if (set.flashcards.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ten zestaw jest pusty. Przekierowano do edycji.')),
+                        );
+                        _editSet(set);
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LearnScreen(flashcardSet: set),
+                          ),
+                        );
+                      }
                     },
                     trailing: PopupMenuButton(
                       itemBuilder: (context) => [
@@ -121,15 +132,14 @@ class _MySetsScreenState extends State<MySetsScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => CreateSetScreen1(
-                onCategoryAdded: _addCategory, 
+                onCategoryAdded: _addCategory,
               ),
             ),
           ).then((_) {
-            setState(() {}); // Odśwież po powrocie
+            setState(() {});
           });
         },
       ),
     );
   }
-
 }
