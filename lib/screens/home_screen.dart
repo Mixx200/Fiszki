@@ -41,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // NOWA FUNKCJA: Potwierdzenie usunięcia zestawu
   void _confirmDeleteSet(BuildContext context, String setId) {
     showDialog(
       context: context,
@@ -59,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: Colors.red,
             ),
             onPressed: () {
-              Navigator.pop(context); 
+              Navigator.pop(context);
               _deleteSet(setId);
             },
             child: const Text('Usuń', style: TextStyle(color: Colors.white)),
@@ -83,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
             set.title.toLowerCase().contains(_searchController.text.toLowerCase()) ||
             set.description.toLowerCase().contains(_searchController.text.toLowerCase());
         final mySetsMatch = !_showOnlyMySets || set.ownerId == currentUserId;
-        
+
         return categoryMatch && searchMatch && mySetsMatch;
       }).toList();
     });
@@ -103,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _resetFilters();
         });
         _toggleSelection[0] = false;
-        
+
       } else if (index == 1) { // Moje
         _showOnlyMySets = true;
         _filterSets();
@@ -118,6 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _showOnlyMySets = false;
       _toggleSelection = [false, false, false];
+      _selectedCategoryId = null; // Reset kategorii
+      _searchController.clear(); // Reset wyszukiwania
       _filterSets();
     });
   }
@@ -153,7 +154,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Cognito'),
         elevation: 0,
-        
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -181,7 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-            // Filtr kategorii
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 labelText: 'Kategoria',
@@ -216,7 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
               onChanged: (value) => _filterSets(),
             ),
             const SizedBox(height: 10),
-            // Przyciski Statystyki / Moje / Zapisane
             ToggleButtons(
               isSelected: _toggleSelection,
               onPressed: _onToggleChanged,
@@ -242,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            _showOnlyMySets 
+                            _showOnlyMySets
                                 ? 'Nie masz jeszcze własnych zestawów'
                                 : 'Brak zestawów spełniających kryteria',
                             style: Theme.of(context).textTheme.bodyLarge,
@@ -258,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onCategoryAdded: _addCategory,
                                     ),
                                   ),
-                                );
+                                ).then((_) => _resetFilters());
                               },
                               child: const Text('Utwórz pierwszy zestaw'),
                             ),
@@ -279,39 +277,49 @@ class _HomeScreenState extends State<HomeScreen> {
                           elevation: 0,
                           margin: const EdgeInsets.symmetric(vertical: 8),
                           child: ListTile(
-                            leading: set.ownerId == currentUserId 
+                            leading: set.ownerId == currentUserId
                                 ? const Icon(Icons.person, color: Colors.blue)
                                 : null,
                             title: Text(set.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text('Kategoria: ${category.name}\n${set.flashcards.length} pytania'),
                             isThreeLine: true,
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LearnScreen(flashcardSet: set),
-                                ),
-                              );
+                              // ZMIANA: Sprawdzamy czy zestaw jest pusty
+                              if (set.flashcards.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Ten zestaw jest pusty. Dodaj fiszki, aby się uczyć.')),
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditSetScreen(set: set),
+                                  ),
+                                ).then((_) => _filterSets());
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => LearnScreen(flashcardSet: set),
+                                  ),
+                                );
+                              }
                             },
                             trailing: PopupMenuButton(
                               itemBuilder: (context) => [
-                            
                                 const PopupMenuItem(value: 'edit', child: Text('Edytuj')),
                                 const PopupMenuItem(value: 'delete', child: Text('Usuń')),
                               ],
                               onSelected: (value) async {
                                 if (value == 'delete') {
-                                  // ZMIANA: Wywołanie funkcji z potwierdzeniem
                                   _confirmDeleteSet(context, set.id);
                                 } else if (value == 'edit') {
-                              
                                   final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => EditSetScreen(set: set),
                                     ),
                                   );
-                                  
+
                                   if (result == true) {
                                     _filterSets();
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -340,13 +348,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ).then((_) {
-            setState(() {
-              _filterSets();
-            });
+            _resetFilters();
           });
         },
       ),
     );
   }
-
 }
