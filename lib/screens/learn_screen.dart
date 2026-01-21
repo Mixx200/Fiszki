@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/flashcard_set.dart';
 import '../widgets/flashcard_view.dart';
 import 'results_screen.dart';
-import '../data/mock_data.dart'; // Upewnij się, że ten import tu jest i zawiera updateSetProgress
+import '../data/mock_data.dart';
 
 class LearnScreen extends StatefulWidget {
   final FlashcardSet flashcardSet;
@@ -14,7 +14,6 @@ class LearnScreen extends StatefulWidget {
 
 class _LearnScreenState extends State<LearnScreen> {
   late PageController _pageController;
-  // Mapa do śledzenia postępów: klucz to ID fiszki, wartość to true (umiem) / false (nie umiem)
   final Map<String, bool> _progress = {};
 
   @override
@@ -29,20 +28,39 @@ class _LearnScreenState extends State<LearnScreen> {
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    if (_progress.length == widget.flashcardSet.flashcards.length) {
+      return true;
+    }
+
+    return await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Przerwać naukę?'),
+        content: const Text('Twoje postępy w tej sesji nie zostaną w pełni zapisane.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Zostań'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Wyjdź', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
   void _onAnswered(String flashcardId, bool isKnown) {
-    // USUŃ TUTAJ POJEDYNCZE ZAPISYWANIE! 
-    // recordFlashcardStudy(); // Ta linia została usunięta, aby zapobiec podwójnemu liczeniu
-    
-    // Zapisz postęp
     setState(() {
       _progress[flashcardId] = isKnown;
     });
 
-    // Sprawdź, czy to ostatnia fiszka
     if (_progress.length == widget.flashcardSet.flashcards.length) {
       _finishLearning();
     } else {
-      // Przejdź do następnej strony
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -51,23 +69,18 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 
   void _finishLearning() {
-    // Oblicz wyniki
     int knownCount = _progress.values.where((known) => known == true).length;
     int unknownCount = _progress.values.length - knownCount;
-    
-    // === KLUCZOWA ZMIANA: JEDNOKROTNY ZAPIS STATYSTYK SESJI ===
-    // Zapisz wyniki całej sesji raz, zanim nastąpi nawigacja
-    updateSetProgress(widget.flashcardSet.id, knownCount, unknownCount);
-    // ========================================================
 
-    // Przejdź do ekranu wyników
+    updateSetProgress(widget.flashcardSet.id, knownCount, unknownCount);
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => ResultsScreen(
           known: knownCount,
           unknown: unknownCount,
-          set: widget.flashcardSet, // Przekaż zestaw do powtórki
+          set: widget.flashcardSet,
         ),
       ),
     );
@@ -75,35 +88,38 @@ class _LearnScreenState extends State<LearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filtrujemy fiszki, których jeszcze nie oceniliśmy
     final remainingFlashcards = widget.flashcardSet.flashcards
         .where((f) => !_progress.containsKey(f.id))
         .toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.flashcardSet.title),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Wróć do ekranu głównego, usuwając wszystko po drodze
-            Navigator.of(context).popUntil((route) => route.isFirst);
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.flashcardSet.title),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              if (await _onWillPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
+        body: PageView.builder(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: remainingFlashcards.length,
+          itemBuilder: (context, index) {
+            final flashcard = remainingFlashcards[index];
+            return FlashcardView(
+              flashcard: flashcard,
+              currentIndex: _progress.length + 1,
+              totalCount: widget.flashcardSet.flashcards.length,
+              onAnswered: (isKnown) => _onAnswered(flashcard.id, isKnown),
+            );
           },
         ),
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(), // Wyłącz przewijanie gestem
-        itemCount: remainingFlashcards.length,
-        itemBuilder: (context, index) {
-          final flashcard = remainingFlashcards[index];
-          return FlashcardView(
-            flashcard: flashcard,
-            currentIndex: _progress.length + 1, // Aktualny numer
-            totalCount: widget.flashcardSet.flashcards.length, // Całkowita liczba
-            onAnswered: (isKnown) => _onAnswered(flashcard.id, isKnown),
-          );
-        },
       ),
     );
   }
