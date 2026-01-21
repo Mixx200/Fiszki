@@ -10,7 +10,6 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  // Kontroler do pola wyszukiwania
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -20,7 +19,6 @@ class _StatsScreenState extends State<StatsScreen> {
     super.dispose();
   }
 
-  // Generuje listę ostatnich 7 dni na podstawie dynamicznych danych
   List<MapEntry<String, int>> _getLast7DaysStats() {
     List<MapEntry<String, int>> stats = [];
     final now = DateTime.now();
@@ -35,8 +33,7 @@ class _StatsScreenState extends State<StatsScreen> {
     return stats;
   }
 
-  // Generuje statystyki dla zestawów na podstawie dynamicznych danych
-  // Wyświetla tylko zestawy, które były przynajmniej raz używane
+  
   List<Map<String, dynamic>> _getSetStats() {
     List<Map<String, dynamic>> setStats = [];
 
@@ -46,7 +43,6 @@ class _StatsScreenState extends State<StatsScreen> {
       final totalAnswered = progress['totalAnswered'] as int;
       final totalCorrect = progress['totalCorrect'] as int;
 
-      // Pomiń zestawy, które nie były jeszcze używane (0 odpowiedzi)
       if (totalAnswered == 0) {
         continue;
       }
@@ -63,7 +59,6 @@ class _StatsScreenState extends State<StatsScreen> {
       });
     }
 
-    // Sortowanie malejąco według liczby odpowiedzi
     setStats.sort((a, b) => b['answered'].compareTo(a['answered']));
 
     return setStats;
@@ -74,13 +69,11 @@ class _StatsScreenState extends State<StatsScreen> {
     final last7Days = _getLast7DaysStats();
     final allSetStats = _getSetStats();
 
-    // Filtrowanie według wyszukiwania
     final filteredStats = allSetStats.where((stat) {
       final title = (stat['title'] as String).toLowerCase();
       return title.contains(_searchQuery.toLowerCase());
     }).toList();
 
-    // Znajdź maksymalną wartość, aby wyskalować słupki
     int maxCount = 10;
     if (last7Days.isNotEmpty) {
        final calculatedMax = last7Days.map((e) => e.value).reduce((a, b) => a > b ? a : b);
@@ -103,7 +96,6 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Wykres słupkowy
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.35,
                 child: Row(
@@ -191,7 +183,6 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               const SizedBox(height: 15),
 
-              // Jeśli lista jest pusta po filtrowaniu
               if (filteredStats.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(20.0),
@@ -203,7 +194,6 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                 )
               else
-                // Lista przefiltrowanych zestawów
                 ...filteredStats.map((stat) {
                   final percent = stat['correct_percent'] as int;
                   final answered = stat['answered'] as int;
