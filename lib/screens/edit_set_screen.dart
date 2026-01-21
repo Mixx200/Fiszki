@@ -262,6 +262,7 @@ class _EditSetScreenState extends State<EditSetScreen> {
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 2,
+                      // Brak validatora - pole opcjonalne
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
