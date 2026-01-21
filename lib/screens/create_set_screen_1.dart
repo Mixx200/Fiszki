@@ -38,8 +38,8 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
             ElevatedButton(
               child: const Text('Dodaj'),
               onPressed: () {
-                if (_categoryNameController.text.isNotEmpty) {
-                  widget.onCategoryAdded(_categoryNameController.text);
+                if (_categoryNameController.text.trim().isNotEmpty) {
+                  widget.onCategoryAdded(_categoryNameController.text.trim());
                   Navigator.pop(context);
                   setState(() {});
                 }
@@ -77,7 +77,7 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nowy zestaw')), 
+      appBar: AppBar(title: const Text('Nowy zestaw')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -133,7 +133,7 @@ class _CreateSetScreen1State extends State<CreateSetScreen1> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
-                
+
               ),
               const SizedBox(height: 32),
               ElevatedButton(
